@@ -1,16 +1,48 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>blog</title>
-  </head>
-  <body  style="overflow: hidden;margin: 0;">
-    <div id="app"></div>
-    <script type="text/javascript" src="/static/js/ThreeWebGL.js"></script>
-    <script type="text/javascript" src="/static/js/ThreeExtras.js"></script>
-    <script type="text/javascript" src="/static/js/RequestAnimationFrame.js"></script>
-    <script id="vs" type="x-shader/x-vertex">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>blog</title>
+</head>
+<link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+<link rel="stylesheet" href="static/css/APlayer.min.css">
+
+
+<!-- 看板娘 -->
+<!--<link rel="stylesheet" type="text/css" href="https://files.cnblogs.com/files/kousak/waifu.css"/>
+<link rel="stylesheet" type="text/css" href="https://files.cnblogs.com/files/yjlblog/flat-ui.min.css"/>-->
+
+<body style="margin: 0;">
+<div id="app" style="overflow-y:auto;overflow-x:hidden"></div>
+
+<!--<div class="waifu" id="waifu">
+  <div class="waifu-tips" style="opacity: 1; font-size: 14px"></div>
+  <canvas id="live2d" width="300" height="300" class="live2d"></canvas>
+  <div class="waifu-tool">
+    <span class="fui-home"></span>
+    <span class="fui-chat"></span>
+    <span class="fui-eye"></span>
+    <span class="fui-user"></span>
+    <span class="fui-photo"></span>
+    <span class="fui-info-circle"></span>
+    <span class="fui-cross"></span>
+  </div>
+</div>-->
+
+<script type="text/javascript" src="/static/live2dw/lib/L2Dwidget.min.js"></script>
+
+<!-- 播放器  -->
+<script src="static/js/APlayer.min.js"></script>
+<script src="static/js/Meting.min.js"></script>
+<meting-js id="590386877" lrc-type="0"  server="netease" order="random" type="playlist" fixed="true" list-olded="true" autoplay="true" ></meting-js>
+
+
+<script type="text/javascript" src="/static/js/mouseClick.js"></script>
+<script type="text/javascript" src="/static/js/ThreeWebGL.js"></script>
+<script type="text/javascript" src="/static/js/ThreeExtras.js"></script>
+<script type="text/javascript" src="/static/js/RequestAnimationFrame.js"></script>
+<script id="vs" type="x-shader/x-vertex">
 
 			varying vec2 vUv;
 
@@ -21,8 +53,9 @@
 
 			}
 
-		</script>
-    <script id="fs" type="x-shader/x-fragment">
+
+</script>
+<script id="fs" type="x-shader/x-fragment">
 
 			uniform sampler2D map;
 
@@ -43,6 +76,13 @@
 
 			}
 
-		</script>
-  </body>
+
+</script>
+
+<!-- 看板娘 -->
+<!--<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://files.cnblogs.com/files/kousak/live2d.js"></script>
+<script src="https://files.cnblogs.com/files/kousak/waifu-tips.js"></script>
+<script type="text/javascript">initModel()</script>-->
+</body>
 </html>
