@@ -40,7 +40,7 @@
         <h1 class="articleTitle">{{moodEssayDate.essayTitle}}</h1>
         <div class="articleContent">{{moodEssayDate.essayContent}}</div>
         <div class="moodEssayTag" v-if="!isLogin">——无心语录</div>
-        <el-button :loading="DelBtnLoading"   class="delMessage"  v-if="isLogin" @click="DelMoodEssay(moodEssayDate.pk_moodEssay)"  type="primary" icon="el-icon-delete ">删除</el-button>
+        <el-button :loading="DelBtnLoading"   class="delMessage"  v-if="isLogin" @click="DelMoodEssay(moodEssayDate)"  type="primary" icon="el-icon-delete ">删除</el-button>
       </el-card>
       <el-pagination  hide-on-single-page  @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-size="5" layout="prev, pager, next, jumper" :total="currentTotal" :current-page="currentPage"/>
     </div>
@@ -119,8 +119,11 @@
       //随笔初始化
       getAllMessages(){
         getAllMessages().then(res=>{
-          this.currentTotal = res.data.messageBoardList.length
-          this.moodEssayDates = res.data.messageBoardList.slice((this.currentPage-1)*this.pageSize,this.currentPage*this.pageSize)
+          for(let i=0;i<res.data.moodEssayList.length;i++){
+            this.$set(res.data.moodEssayList[i], 'index', i)
+          }
+          this.currentTotal = res.data.moodEssayList.length
+          this.moodEssayDates = res.data.moodEssayList.slice((this.currentPage-1)*this.pageSize,this.currentPage*this.pageSize)
         })
       },
 
@@ -134,16 +137,19 @@
       },
 
       //随便删除
-      DelMoodEssay(pk_moodEssay){
+      DelMoodEssay(moodEssayDate){
         this.DelBtnLoading = true
         this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          moodEssayDel({pk_moodEssay:pk_moodEssay}).then(res=>{
+          moodEssayDel({pk_moodEssay:moodEssayDate.pk_moodEssay}).then(res=>{
             this.$message({type: 'success', message: '删除成功!'});
-            this.getAllMessages();
+            this.moodEssayDates.splice(moodEssayDate.index, 1)
+            for(let i=0;i<this.moodEssayDates.length;i++){
+              this.$set(this.moodEssayDates[i], 'index', i)
+            }
             this.DelBtnLoading = false
           })
         })

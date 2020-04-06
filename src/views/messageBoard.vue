@@ -21,14 +21,16 @@
         <el-avatar>{{messageDate.author}}</el-avatar>
          <div class="messageContent">{{messageDate.messageContent}}</div>
         <div class="commitTime"><i class="el-icon-time"></i>{{messageDate.ts}}</div>
-         <el-button :loading="DelBtnLoading"   class="delMessage"  v-if="isLogin" @click="DelMessage(messageDate.pk_MessageBoard)"  type="primary" icon="el-icon-delete ">删除</el-button>
-         <el-button :loading="ReplayBtnLoading" class="answerMessage" v-if="isLogin" @click="replyMessage(messageDate.pk_MessageBoard)" type="primary" icon="el-icon-chat-line-round">{{messageDate.status===0?'回复':'修改回复'}}</el-button>
+         <el-button  class="delMessage"  v-if="isLogin&&!messageDate.DelRelPlayBtn" @click="showDelBtn(messageDate)"  type="primary" icon="el-icon-delete ">取消</el-button>
+         <el-button  class="delMessage"  v-if="isLogin&&messageDate.DelRelPlayBtn" @click="DelMessage(messageDate)"  type="primary" icon="el-icon-delete ">删除</el-button>
+         <el-button  class="answerMessage" v-if="isLogin&&messageDate.showRelPlayBtn" @click="showReplay(messageDate)" type="primary" icon="el-icon-chat-line-round">{{messageDate.status===0?'回复':'修改回复'}}</el-button>
+         <el-button :loading="ReplayBtnLoading" class="answerMessage" v-if="isLogin&&!messageDate.showRelPlayBtn" @click="replyMessage(messageDate)" icon="el-icon-chat-line-round" type="primary">确定</el-button>
          <el-collapse v-show="messageDate.status" :v-model="activeNames" >
            <el-collapse-item title="无心的回复:" name="1">
              <div>{{messageDate.replyContent}}</div>
            </el-collapse-item>
          </el-collapse>
-         <el-input v-if="isLogin" type="textarea" :rows="1" class="replyInput" v-model="replyContent" placeholder="请输入要回复复的内容"></el-input>
+         <el-input v-if="isLogin&&messageDate.isEdit"  type="textarea" :rows="1" class="replyInput" v-model="messageDate.replyContent" placeholder="请输入要回复复的内容"></el-input>
        </el-card>
        <el-pagination
          @size-change="handleSizeChange"
@@ -71,17 +73,22 @@
             showReplyLabel:false,// 显示回复内容,
             messageDates:[],//留言板所有信息
             CommitBtnLoading:false, //提交按钮loading
-            DelBtnLoading:false, //删除按钮loading
             ReplayBtnLoading:false, //回复按钮loading
             currentPage:1,
             pageSize:5,
-            currentTotal:0
+            currentTotal:0,
           }
       },
       methods:{
           //获取所有留言内容
          getAllMessages(){
            getAllMessages().then(res=>{
+             for(let i=0;i<res.data.messageBoardList.length;i++){
+               this.$set(res.data.messageBoardList[i], 'isEdit', false)
+               this.$set(res.data.messageBoardList[i], 'showRelPlayBtn', true)
+               this.$set(res.data.messageBoardList[i], 'DelRelPlayBtn', true)
+               this.$set(res.data.messageBoardList[i], 'index', i)
+             }
              this.currentTotal = res.data.messageBoardList.length
              this.messageDates = res.data.messageBoardList.slice((this.currentPage-1)*this.pageSize,this.currentPage*this.pageSize)
          })
@@ -125,36 +132,51 @@
 
         },
 
-
           //删除回复
-        DelMessage(pk_MessageBoard){
-           this.DelBtnLoading = true
+        DelMessage(messageDate){
           this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            deleteMessage({pk_MessageBoard:pk_MessageBoard}).then(res=>{
+            deleteMessage({pk_MessageBoard:messageDate.pk_MessageBoard}).then(res=>{
               this.$message({type: 'success', message: '删除成功!'});
-              this.getAllMessages();
-              this.DelBtnLoading = false
+              this.messageDates.splice(messageDate.index, 1)
+               for(let i=0;i<this.messageDates.length;i++){
+                 this.$set(this.messageDates[i], 'index', i)
+               }
             })
         })
         },
+        showReplay(messageDate){
+          this.$set(messageDate, 'isEdit', true)
+          this.$set(messageDate, 'showRelPlayBtn', false)
+          this.$set(messageDate, 'DelRelPlayBtn', false)
+          this.$set(messageDate, 'replyContent', '')
+        },
+        showDelBtn(messageDate){
+          this.$set(messageDate, 'isEdit', false)
+          this.$set(messageDate, 'showRelPlayBtn',true )
+          this.$set(messageDate, 'DelRelPlayBtn', true)
+          this.$set(messageDate, 'replyContent', '')
+        },
         // 回复信息
-        replyMessage(pk_MessageBoard){
+        replyMessage(messageDate){
          this.ReplayBtnLoading = true
-          if(!this.replyContent){
+          if(!messageDate.replyContent){
             this.$message({
               message: '留言内容不能为空',
               type: 'error'
             })
             this.ReplayBtnLoading = false
           }else{
-            replayMessage({pk_MessageBoard:pk_MessageBoard,replyContent:this.replyContent,status:1}).then(res=>{
-              this.getAllMessages();
+            replayMessage({pk_MessageBoard: messageDate.pk_MessageBoard,replyContent:messageDate.replyContent,status:1}).then(res=>{
+              this.$set(this.messageDates[messageDate.index], 'isEdit', false)
+              this.$set(this.messageDates[messageDate.index], 'showRelPlayBtn', true)
+              this.$set(this.messageDates[messageDate.index], 'DelRelPlayBtn', true)
+              this.$set(this.messageDates[messageDate.index], 'replyContent', messageDate.replyContent)
+              this.$set(this.messageDates[messageDate.index], 'status',1)
               this.ReplayBtnLoading = false
-              this.replyContent=''
             })
           }
         }
