@@ -1,7 +1,7 @@
 <template>
     <div class="headerNav">
       <div class="homeHeaderNav">
-        <div class="homeHeaderNav-left">无心岁月，旧忆时光</div>
+        <div class="homeHeaderNav-left"><label @click="backTop">无心岁月，旧忆时光</label></div>
         <div  class="homeHeaderNav-center">
           <el-menu  :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
             <el-menu-item index="homePage"><i class="el-icon-house"></i>首页</el-menu-item>
@@ -22,12 +22,20 @@
        return{
          activeIndex:this.$route.name,
          showNavMenu:'false',
-         keyPath:'1'
+         keyPath:'1',
        }
       },
       created() {
         window.addEventListener('scoll',this.handScroll)
       },
+      mounted() {
+        window.addEventListener('scroll', this.scrollToTop)
+      },
+
+      destroyed () {
+        window.removeEventListener('scroll', this.scrollToTop)
+      },
+
       methods:{
         handleSelect(key){
           if(key==='homePage'){
@@ -47,6 +55,27 @@
           if(key==='pigeonholeManagement'){
             this.reload()
             this.$router.push({name:'pigeonholeManagement'})
+          }
+        },
+        // 回到顶部
+        backTop () {
+          const that = this
+          let timer = setInterval(() => {
+            let ispeed = Math.floor(-that.scrollTop / 5)
+            document.documentElement.scrollTop = document.body.scrollTop = that.scrollTop + ispeed
+            if (that.scrollTop === 0) {
+              clearInterval(timer)
+            }
+          }, 16)
+        },
+        scrollToTop () {
+          const that = this
+          let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+          that.scrollTop = scrollTop
+          if (that.scrollTop > 60) {
+            that.btnFlag = true
+          } else {
+            that.btnFlag = false
           }
         }
       }
