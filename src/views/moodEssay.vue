@@ -20,7 +20,7 @@
         <el-divider direction="vertical"></el-divider>
         <span>心向天空</span>
       </el-divider>
-      <div class="imgOutRow" v-for="CenterImage in CenterImages">
+      <div  class="imgOutRow" v-for="CenterImage in CenterImages">
         <div class="imgRow">
           <img class="imgRowCss" :src="CenterImage.imageUrl">
         </div>
@@ -33,14 +33,30 @@
         <el-input type="textarea" :rows="10" placeholder="请输入内容" v-model="essayContent"></el-input>
         <el-button class="moodEssaySave" @click="moodEssaySave()" type="primary" :loading="SaveBtnLoading">保存</el-button>
       </div>
-      <el-card class="box-card" shadow="hover" v-for="moodEssayDate in moodEssayDates" :key="moodEssayDate.pk_moodEssay">
-        <swingingPendant class="swingingPendant" v-if="!isLogin"></swingingPendant>
-        <el-avatar src=" https://img.jbzj.com/file_images/article/201310/20131008165929119.jpg"></el-avatar>
-        <div class="ReleaseTime"><i class="el-icon-time"></i>{{moodEssayDate.ts}}</div>
-        <h1 class="articleTitle">{{moodEssayDate.essayTitle}}</h1>
-        <div class="articleContent">{{moodEssayDate.essayContent}}</div>
-        <div class="moodEssayTag" v-if="!isLogin">——无心语录</div>
-        <el-button :loading="DelBtnLoading"   class="delMessage"  v-if="isLogin" @click="DelMoodEssay(moodEssayDate)"  type="primary" icon="el-icon-delete ">删除</el-button>
+      <el-card  class="box-card" shadow="hover" v-for="(moodEssayDate,index) in moodEssayDates" :key="moodEssayDate.pk_moodEssay">
+       <div class="card">
+         <div class="cardLeft">
+           <el-avatar src=" https://img.jbzj.com/file_images/article/201310/20131008165929119.jpg"></el-avatar>
+           <swingingPendant class="swingingPendant" ></swingingPendant>
+         </div>
+         <div class="cardCenter">
+           <div class="cardCenterHeader">
+             <div class="articleTitle"><label>{{moodEssayDate.essayTitle}}</label></div>
+             <span><i class="el-icon-time"></i>{{moodEssayDate.ts}}</span>
+           </div>
+           <div class="cardCenterBody">
+             <div class="cardCenterBodyTop">
+               <div :class="[moodEssayDate.isAll?'articleContent':'articleContent2']"  ref="articleContent">{{moodEssayDate.essayContent}}</div>
+               <el-button class="checkArticle" type="text" @click="showAllContent(moodEssayDate,index)" v-show="moodEssayDate.showAllContentBtn">展开查看全文</el-button>
+               <el-button style="margin: 0;" type="text" @click="NotShowAllContent(moodEssayDate,index)" v-show="moodEssayDate.packUpArticle" icon="el-icon-top">收起</el-button>
+             </div>
+             <div class="articleBtnS">
+               <div  v-show="!isLogin">——无心语录</div>
+               <el-button :loading="DelBtnLoading"  v-show="isLogin" @click="DelMoodEssay(moodEssayDate)"  type="primary" icon="el-icon-delete ">删除</el-button>
+             </div>
+           </div>
+         </div>
+       </div>
       </el-card>
       <el-pagination  hide-on-single-page  @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-size="5" layout="prev, pager, next, jumper" :total="currentTotal" :current-page="currentPage"/>
     </div>
@@ -55,6 +71,7 @@
     components:{
       swingingPendant
     },
+    inject:["reload"],
     data(){
       return{
         TopImages:[
@@ -106,11 +123,15 @@
         DelBtnLoading:false,
         essayContent:'',
         essayTitle:'',
-        SaveBtnLoading:false
+        SaveBtnLoading:false,
+        packUpArticle:'',
+        showAllContentBtn:'',
+        isAll:'',
       }
     },
     mounted() {
       this.showText(this.NavText,element,0,200)
+
     },
     created() {
       this.getAllMessages()
@@ -121,10 +142,34 @@
         getAllMessages().then(res=>{
           for(let i=0;i<res.data.moodEssayList.length;i++){
             this.$set(res.data.moodEssayList[i], 'index', i)
+            this.$set(res.data.moodEssayList[i], 'packUpArticle', false)
+            this.$set(res.data.moodEssayList[i], 'showAllContentBtn', false)
+            this.$set(res.data.moodEssayList[i], 'isAll', true)
           }
           this.currentTotal = res.data.moodEssayList.length
           this.moodEssayDates = res.data.moodEssayList.slice((this.currentPage-1)*this.pageSize,this.currentPage*this.pageSize)
+          setTimeout(() => {
+            if(this.$refs.articleContent){
+              for(let i = 0;i<this.$refs.articleContent.length;i++){
+                if(this.$refs.articleContent[i].offsetHeight>=189){
+                  this.$set(this.moodEssayDates[i], 'showAllContentBtn', true)
+                }
+              }
+            }
+          }, 200);
         })
+      },
+      //展开全文
+      showAllContent(moodEssayDate,index){
+        this.$set(this.moodEssayDates[index], 'isAll', false)
+        this.$set(this.moodEssayDates[index], 'showAllContentBtn', false)
+        this.$set(this.moodEssayDates[index], 'packUpArticle', true)
+      },
+      // 收起
+      NotShowAllContent(moodEssayDate,index){
+        this.$set(this.moodEssayDates[index], 'isAll', true)
+        this.$set(this.moodEssayDates[index], 'showAllContentBtn', true)
+        this.$set(this.moodEssayDates[index], 'packUpArticle', false)
       },
 
       handleCurrentChange(val){
@@ -152,7 +197,7 @@
             }
             this.DelBtnLoading = false
           })
-        })
+        }).catch();
       },
 
       //随笔保存
@@ -170,17 +215,18 @@
             type: 'error'
           })
           this.SaveBtnLoading = false
-        }
-        moodEssaySave({essayContent:this.essayContent,essayTitle:this.essayTitle,Ts:new Date().toLocaleDateString()}).then(res=>{
-          this.$notify({
-            message: '保存成功',
-            type: 'success'
+        }else{
+          moodEssaySave({essayContent:this.essayContent,essayTitle:this.essayTitle,Ts:new Date().toLocaleDateString()}).then(res=>{
+            this.$notify({
+              message: '保存成功',
+              type: 'success'
+            })
+            this.SaveBtnLoading = false
+            this.getAllMessages()
+            this.essayTitle=''
+            this.essayContent=''
           })
-          this.SaveBtnLoading = false
-          this.getAllMessages()
-          this.essayTitle=''
-          this.essayContent=''
-        })
+        }
       },
 
 
@@ -191,12 +237,6 @@
         }
       },
 
-      // 转码
-      escapeStringHTML(str) {
-        str = str.replace(/</g,'<');
-        str = str.replace(/>/g,'>');
-        return str;
-      }
     }
   }
 </script>
@@ -325,78 +365,93 @@
   .imgRowCss:hover{
     transform: scale(1.4);
   }
+  .moodEssayTitle{
+    width: 200px;
+    margin: 0 0 2% 35%;
+  }
+  .moodEssaySave{
+    width: 100px;
+    margin-top: 2%;
+    margin-left: 88%;
+  }
   .el-card{
-    width: 100%;
-    height: 300px;
     margin: 30px 0 50px;
     border-radius: 10px;
     background-color: rgba(255, 255, 255, 0);
-    position: relative;
+  }
+   .card{
+     width: 800px;
+     height: auto;
+     display: flex;
+     flex-direction: row; /*决定主轴方向 自左往右水平排列*/
+     justify-content: flex-start; /*决定水平齐方式 左对齐*/
+   }
+  .cardLeft{
+    height: auto;
+    width: 20%;
+    display: flex;
+    flex-direction:column;/*决定主轴方向 自上而下竖直排列*/
+    align-items:flex-start; /*决定垂直对齐方式 上对齐*/
+  }
+  .cardLeft .swingingPendant{
+    transform: scale(0.3);
+    margin-left: 35%;
+    margin-top: 85%;
+  }
+  .cardLeft .el-avatar{
+    margin-top: 25%;
+    margin-left: 25%;
+    transform: scale(3);
+  }
+  .cardCenter{
+    display: flex;
+    flex-direction:column;/*决定主轴方向 自上往下水平排列*/
+    align-items:flex-start; /*决定垂直对齐方式 上对齐*/
+    width: 80%;
+    min-height: 300px;
+  }
+  .cardCenterHeader{
+    display: flex;
+    flex-direction: row; /*决定主轴方向 自左往右水平排列*/
+    justify-content: space-between; /*决定水平齐方式 两边对齐*/
+    align-items:center;  /* 决定垂直对齐方式 居中*!*/
+    width: 100%;
+    margin-bottom: 2%;
+  }
+
+  .articleTitle{
+    letter-spacing: 4px;
+    color: #797979;
+    font-size: 1.5rem;
+    margin-left:40% ;
+  }
+  .cardCenterBody{
+    flex-direction: column;
+    justify-content: space-between;
+    display: flex;
+  }
+  .articleContent{
+    width: 640px;
+    word-wrap: break-word;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 9;
+    overflow: hidden;
+  }
+  .articleContent2{
+    width: 640px;
+    word-wrap: break-word
+  }
+  .articleBtnS{
+    display: flex;
+    flex-direction:row;
+    justify-content:flex-end;
+    margin-top: 2%;
   }
   .el-pagination{
     position: absolute;
     right: 29%;
   }
-  .el-avatar{
-    transform: scale(3);
-    margin-top: 5%;
-    margin-left: 5%;
-  }
-  .articleTitle{
-    letter-spacing: 4px;
-    color: #797979;
-    text-align: center;
-    width: 400px;
-    height: 50px;
-    position: absolute;
-    left: 30%;
-    top:0;
 
-  }
-  .ReleaseTime{
-    position: absolute;
-    top: 2%;
-    right: 2%;
-  }
-  .articleContent{
-    left: 20%;
-    top: 22%;
-    position: absolute;
-    width: 600px;
-    height: 200px;
-    overflow : hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 5;
-    -webkit-box-orient: vertical;
-  }
-  .delMessage{
-    position: absolute;
-    bottom: 2%;
-    right: 1%;
-    cursor: url(https://cdn.jsdelivr.net/gh/moezx/cdn@3.1.9/img/Sakura/cursor/ayuda.cur), auto;
-  }
-  .moodEssayTitle{
-    margin-top: 10px;
-    margin-bottom: 30px;
-    width: 300px;
-    margin-left: 30%;
-  }
-  .moodEssaySave{
-    width: 100px;
-    cursor: url(https://cdn.jsdelivr.net/gh/moezx/cdn@3.1.9/img/Sakura/cursor/ayuda.cur), auto;
-    margin-top: 2%;
-    margin-left:88%;
-  }
-  .moodEssayTag{
-    position: absolute;
-    bottom: 2%;
-    right: 1%;
-  }
-  .swingingPendant{
-    transform: scale(0.32);
-    position: absolute;
-    bottom: 40%;
-    left: 10%;
-  }
 </style>

@@ -153,7 +153,7 @@
     animation: swing 7s cubic-bezier(0.5, 0, 0.5, 1) infinite both;
   }
   .all:before {
-    height: 20rem;
+    height: 15rem;
     width: 2px;
     background-color: #DB242A;
     left: calc(50% - 1px);
@@ -162,7 +162,7 @@
 
   .yarn {
     position: absolute;
-    top: 0;
+    top: -89px;
     left: 0;
     width: 80px;
     height: 80px;
@@ -190,7 +190,7 @@
 
   .cat-wrap {
     position: absolute;
-    top: 0;
+    top:-89px;
     left: calc(50% - 45px);
     width: 90px;
     height: 130px;

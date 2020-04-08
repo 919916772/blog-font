@@ -48,12 +48,11 @@
 
           }
           if(key==='messageBoard'){
-            this.reload()
+
             this.$router.push({name:'messageBoard'})
 
           }
           if(key==='pigeonholeManagement'){
-            this.reload()
             this.$router.push({name:'pigeonholeManagement'})
           }
         },

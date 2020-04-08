@@ -1,6 +1,6 @@
 <template>
-  <div class="fileRow" >
-      <el-timeline>
+  <div class="fileRow">
+    <el-timeline>
         <el-timeline-item :timestamp="pigeonholeManagementDate.ts" placement="top" v-for="pigeonholeManagementDate in pigeonholeManagementDates" :key="pigeonholeManagementDate.pk_moodEssay">
           <el-card>
             <h4 class="Title">{{pigeonholeManagementDate.essayTitle}}</h4>
@@ -24,6 +24,7 @@
           currentTotal:0,
           pigeonholeManagementDates:[],
           timestamp:'',
+          showError:false,
         }
       },
      created() {
@@ -33,8 +34,11 @@
         //随笔初始化
         getAllMessages(){
           getAllMessages().then(res=>{
-            this.currentTotal = res.data.messageBoardList.length
-            this.pigeonholeManagementDates = res.data.messageBoardList.slice((this.currentPage-1)*this.pageSize,this.currentPage*this.pageSize)
+            this.currentTotal = res.data.moodEssayList.length
+            this.pigeonholeManagementDates = res.data.moodEssayList.slice((this.currentPage-1)*this.pageSize,this.currentPage*this.pageSize)
+            if(!res){
+              this.showError = true
+            }
           })
         },
         handleCurrentChange(val){
@@ -63,6 +67,9 @@
     margin-left: 85%;
   }
   .Content{
-    overflow: hidden; white-space: nowrap; text-overflow: clip;width:550px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width:550px;
   }
 </style>

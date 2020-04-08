@@ -17,31 +17,50 @@
      <el-input class="userInput" v-model="author" placeholder="请输入昵称"/>
      <el-input type="textarea" :rows="10" placeholder="请输入内容" v-model="messageContent"></el-input>
      <el-button class="messageCommitBtn" type="info" @click="commitMessage()" :loading="CommitBtnLoading">提交</el-button>
-       <el-card class="box-card" shadow="hover" v-for="messageDate in messageDates" :key="messageDate.pk_MessageBoard">
-        <el-avatar>{{messageDate.author}}</el-avatar>
-         <div class="messageContent">{{messageDate.messageContent}}</div>
-        <div class="commitTime"><i class="el-icon-time"></i>{{messageDate.ts}}</div>
-         <el-button  class="delMessage"  v-if="isLogin&&!messageDate.DelRelPlayBtn" @click="showDelBtn(messageDate)"  type="primary" icon="el-icon-delete ">取消</el-button>
-         <el-button  class="delMessage"  v-if="isLogin&&messageDate.DelRelPlayBtn" @click="DelMessage(messageDate)"  type="primary" icon="el-icon-delete ">删除</el-button>
-         <el-button  class="answerMessage" v-if="isLogin&&messageDate.showRelPlayBtn" @click="showReplay(messageDate)" type="primary" icon="el-icon-chat-line-round">{{messageDate.status===0?'回复':'修改回复'}}</el-button>
-         <el-button :loading="ReplayBtnLoading" class="answerMessage" v-if="isLogin&&!messageDate.showRelPlayBtn" @click="replyMessage(messageDate)" icon="el-icon-chat-line-round" type="primary">确定</el-button>
-         <el-collapse v-show="messageDate.status" :v-model="activeNames" >
-           <el-collapse-item title="无心的回复:" name="1">
-             <div>{{messageDate.replyContent}}</div>
-           </el-collapse-item>
-         </el-collapse>
-         <el-input v-if="isLogin&&messageDate.isEdit"  type="textarea" :rows="1" class="replyInput" v-model="messageDate.replyContent" placeholder="请输入要回复复的内容"></el-input>
-       </el-card>
-       <el-pagination
-         @size-change="handleSizeChange"
-         @current-change="handleCurrentChange"
-         :page-size="5"
-         layout="prev, pager, next, jumper"
-         :total="currentTotal"
-         :current-page="currentPage"
-         hide-on-single-page
-       >
-       </el-pagination>
+     <el-card class="box-card" shadow="hover" v-for="(messageDate,index) in messageDates" :key="messageDate.pk_MessageBoard">
+           <div class="messageWall">
+             <div class="messageWallLeft">
+               <el-avatar>{{messageDate.author}}</el-avatar>
+             </div>
+             <div class="messageWallBody">
+               <div :class="[messageDate.isAll?'messageContent':'messageContent2']" ref="messageBoardContent">{{messageDate.messageContent}}</div>
+               <div class="messageWallBodyBtn">
+                 <div style="min-width: 84px;min-height: 56px">
+                   <el-button class="checkArticle" type="text" @click="showAllContent(messageDate,index)" v-show="messageDate.showAllContentBtn">展开查看全文</el-button>
+                   <el-button style="margin: 0;" type="text" @click="NotShowAllContent(messageDate,index)" v-show="messageDate.packUpArticle" icon="el-icon-top">收起</el-button>
+                 </div>
+                 <div class="commitTime"><i class="el-icon-time"></i>{{messageDate.ts}}</div>
+               </div>
+             </div>
+           </div>
+           <div class="divider" v-show="messageDate.status"></div>
+           <div class="replayWall" v-show="messageDate.status" >
+             <div class="replayWallLeft">
+               <el-avatar src=" https://img.jbzj.com/file_images/article/201310/20131008165929119.jpg"></el-avatar>
+             </div>
+             <div class="replayWallBody">
+               <div :class="[messageDate.ReplyIsAll?'replayContent':'replayContent2']" ref="replayBoard"  v-show="messageDate.showReplayBoard">
+                 {{messageDate.replyContent}}
+               </div>
+               <div class="replayWallBodyBtn" >
+                 <el-button class="checkArticle" type="text" @click="showAllReplay(messageDate,index)" v-show="messageDate.showAllReplayContent">展开查看全文</el-button>
+                 <el-button style="margin: 0;" type="text" @click="NotShowAllReplay(messageDate,index)" v-show="messageDate.packUpReplay" icon="el-icon-top">收起</el-button>
+               </div>
+             </div>
+           </div>
+           <div class="btnWall">
+             <div class="inputArea">
+               <el-input   @focus="inputFocus(messageDate)" v-if="isLogin&&messageDate.isEdit"  type="textarea" :rows="1" class="replyInput" v-model="messageDate.replyContent" placeholder="请输入要回复复的内容"></el-input>
+             </div>
+             <div class="btnArea">
+               <el-button :loading="ReplayBtnLoading" class="answerMessage" v-if="isLogin&&!messageDate.showRelPlayBtn" @click="replyMessage(messageDate)" icon="el-icon-chat-line-round" type="primary">确定</el-button>
+               <el-button  class="delMessage"  v-if="isLogin&&!messageDate.DelRelPlayBtn" @click="showDelBtn(messageDate)"  type="primary" icon="el-icon-delete ">取消</el-button>
+               <el-button  class="answerMessage" v-if="isLogin&&messageDate.showRelPlayBtn" @click="showReplay(messageDate)" type="primary" icon="el-icon-chat-line-round">{{messageDate.status===0?'回复':'修改回复'}}</el-button>
+               <el-button  class="delMessage"  v-if="isLogin&&messageDate.DelRelPlayBtn" @click="DelMessage(messageDate)"  type="primary" icon="el-icon-delete ">删除</el-button>
+             </div>
+           </div>
+     </el-card>
+     <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-size="5" layout="prev, pager, next, jumper" :total="currentTotal" :current-page="currentPage" hide-on-single-page/>
     </div>
  </div>
 </template>
@@ -77,9 +96,13 @@
             currentPage:1,
             pageSize:5,
             currentTotal:0,
+            replayContents:[]
           }
       },
       methods:{
+          inputFocus(messageDate){
+            this.$set(messageDate, 'showReplayBoard', false)
+          },
           //获取所有留言内容
          getAllMessages(){
            getAllMessages().then(res=>{
@@ -88,11 +111,60 @@
                this.$set(res.data.messageBoardList[i], 'showRelPlayBtn', true)
                this.$set(res.data.messageBoardList[i], 'DelRelPlayBtn', true)
                this.$set(res.data.messageBoardList[i], 'index', i)
+               this.$set(res.data.messageBoardList[i], 'packUpArticle', false)
+               this.$set(res.data.messageBoardList[i], 'showAllContentBtn', false)
+               this.$set(res.data.messageBoardList[i], 'isAll', true)
+               this.$set(res.data.messageBoardList[i], 'packUpReplay', false)
+               this.$set(res.data.messageBoardList[i], 'showAllReplayContent', false)
+               this.$set(res.data.messageBoardList[i], 'ReplyIsAll', true)
+               this.$set(res.data.messageBoardList[i], 'showReplayBoard', true)
              }
+             this.replayContents =JSON.parse(JSON.stringify( res.data.messageBoardList))
              this.currentTotal = res.data.messageBoardList.length
              this.messageDates = res.data.messageBoardList.slice((this.currentPage-1)*this.pageSize,this.currentPage*this.pageSize)
+
+             setTimeout(() => {
+               if(this.$refs.messageBoardContent){
+                 for(let i = 0;i<this.$refs.messageBoardContent.length;i++){
+                   if(this.$refs.messageBoardContent[i].offsetHeight>=210){
+                     this.$set(this.messageDates[i], 'showAllContentBtn', true)
+                   }
+                 }
+               }
+               if(this.$refs.replayBoard){
+                 for(let i = 0;i<this.$refs.replayBoard.length;i++){
+                   if(this.$refs.replayBoard[i].offsetHeight>=126){
+                     this.$set(this.messageDates[i], 'showAllReplayContent', true)
+                   }
+                 }
+               }
+
+             }, 200);
          })
          },
+        showAllReplay(moodEssayDate,index){
+          this.$set(this.messageDates[index], 'ReplyIsAll', false)
+          this.$set(this.messageDates[index], 'showAllReplayContent', false)
+          this.$set(this.messageDates[index], 'packUpReplay', true)
+        },
+        NotShowAllReplay(moodEssayDate,index){
+          this.$set(this.messageDates[index], 'ReplyIsAll', true)
+          this.$set(this.messageDates[index], 'showAllReplayContent', true)
+          this.$set(this.messageDates[index], 'packUpReplay', false)
+        },
+
+        showAllContent(moodEssayDate,index){
+          this.$set(this.messageDates[index], 'isAll', false)
+          this.$set(this.messageDates[index], 'showAllContentBtn', false)
+          this.$set(this.messageDates[index], 'packUpArticle', true)
+        },
+        // 收起
+        NotShowAllContent(moodEssayDate,index){
+          this.$set(this.messageDates[index], 'isAll', true)
+          this.$set(this.messageDates[index], 'showAllContentBtn', true)
+          this.$set(this.messageDates[index], 'packUpArticle', false)
+        },
+
            // 分页器
         handleCurrentChange(val){
           this.currentPage = val;
@@ -146,23 +218,36 @@
                  this.$set(this.messageDates[i], 'index', i)
                }
             })
-        })
+        }).catch();
         },
         showReplay(messageDate){
+          this.$set(messageDate, 'showReplayBoard', false)
           this.$set(messageDate, 'isEdit', true)
           this.$set(messageDate, 'showRelPlayBtn', false)
           this.$set(messageDate, 'DelRelPlayBtn', false)
+          this.$set(messageDate, 'showAllReplayContent', false)
           this.$set(messageDate, 'replyContent', '')
         },
         showDelBtn(messageDate){
+          this.$set(messageDate, 'showReplayBoard', true)
           this.$set(messageDate, 'isEdit', false)
           this.$set(messageDate, 'showRelPlayBtn',true )
           this.$set(messageDate, 'DelRelPlayBtn', true)
-          this.$set(messageDate, 'replyContent', '')
+          this.messageDates[messageDate.index].replyContent =JSON.parse(JSON.stringify( this.replayContents[messageDate.index].replyContent))
+          setTimeout(()=>{
+            if(this.$refs.replayBoard){
+              for(let i = 0;i<this.$refs.replayBoard.length;i++){
+                if(this.$refs.replayBoard[i].offsetHeight>=126){
+                  this.$set(this.messageDates[i], 'showAllReplayContent', true)
+                }
+              }
+            }
+          },200)
         },
         // 回复信息
         replyMessage(messageDate){
-         this.ReplayBtnLoading = true
+
+          this.ReplayBtnLoading = true
           if(!messageDate.replyContent){
             this.$message({
               message: '留言内容不能为空',
@@ -171,11 +256,26 @@
             this.ReplayBtnLoading = false
           }else{
             replayMessage({pk_MessageBoard: messageDate.pk_MessageBoard,replyContent:messageDate.replyContent,status:1}).then(res=>{
+              this.$notify({
+                message: '修改成功', // 修改成功
+                type: 'success'
+              })
               this.$set(this.messageDates[messageDate.index], 'isEdit', false)
               this.$set(this.messageDates[messageDate.index], 'showRelPlayBtn', true)
               this.$set(this.messageDates[messageDate.index], 'DelRelPlayBtn', true)
               this.$set(this.messageDates[messageDate.index], 'replyContent', messageDate.replyContent)
               this.$set(this.messageDates[messageDate.index], 'status',1)
+              this.$set(this.messageDates[messageDate.index], 'showReplayBoard', true)
+              this.replayContents[messageDate.index].replyContent =JSON.parse(JSON.stringify(this.messageDates[messageDate.index].replyContent ))
+              setTimeout(()=>{
+                if(this.$refs.replayBoard){
+                  for(let i = 0;i<this.$refs.replayBoard.length;i++){
+                    if(this.$refs.replayBoard[i].offsetHeight>=126){
+                      this.$set(this.messageDates[i], 'showAllReplayContent', true)
+                    }
+                  }
+                }
+              },200)
               this.ReplayBtnLoading = false
             })
           }
@@ -185,6 +285,16 @@
 </script>
 
 <style scoped>
+  .el-pagination{
+    position: absolute;
+    right: 29%;
+
+  }
+  .divider{
+    border:1px #dcdfe6 solid;
+    margin-top:1% ;
+    margin-bottom: 1%;
+  }
   .messageBoardNav{
     height: 60px;
     line-height: 60px;
@@ -261,19 +371,109 @@
     margin-bottom: 2%;
   }
   .el-card{
-    width: 100%;
-    height: 300px;
-    margin: 50px 0 50px;
+    margin: 30px 0 50px;
     border-radius: 10px;
     background-color: rgba(255, 255, 255, 0);
-    position: relative;
+    display: flex;
+    flex-direction: column; /*决定主轴方向 自上往右水平排列*/
+    align-items:flex-start; /*决定垂直对齐方式 上对齐*/
+    width: 800px;
+    height: auto;
+   /* max-width: 840px;
+    padding: 10px 10px 0 10px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 60px;
+    height: auto;
+    background-color: rgba(255, 255, 255, .8);*/
   }
-  .el-pagination{
-    position: absolute;
-    right: 29%;
+  .messageWall{
+    display: flex;
+    flex-direction: row; /*决定主轴方向 自左往右水平排列*/
+    justify-content: flex-start; /*决定水平齐方式 左对齐*/
+    min-height:250px;
+  }
+  .messageWallLeft{
+    width: 150px;
+  }
+  .messageWallLeft .el-avatar{
+    transform: scale(3);
+    margin-top: 70%;
+    margin-left: 35%;
+  }
+  .messageWallBody{
 
+    flex-direction: column;
+    justify-content: space-between;
+    display: flex;
   }
-  .el-avatar{
+  .messageContent{
+    width: 620px;
+    word-wrap: break-word;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp:10;
+    overflow: hidden;
+  }
+  .messageContent2{
+    width: 620px;
+    word-wrap: break-word;
+  }
+  .messageWallBodyBtn{
+    padding-left: 1%;
+    display: flex;
+    flex-direction:row;
+    justify-content:space-between;
+  }
+
+  .replayWall{
+    min-height: 160px;
+    display: flex;
+    flex-direction: row; /*决定主轴方向 自左往右水平排列*/
+    justify-content: flex-start; /*决定水平齐方式 左对齐*/
+  }
+  .replayWallLeft{
+    width: 150px;
+  }
+  .replayWallLeft .el-avatar{
+    transform: scale(2);
+    margin-top: 30%;
+    margin-left: 35%;
+  }
+  .replayWallBody{
+    width: 620px;
+    flex-direction: column;
+    justify-content: space-between;
+    display: flex;
+  }
+  .replayContent{
+    width: 620px;
+    min-height: 125px;
+    word-wrap: break-word;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp:6;
+    overflow: hidden;
+  }
+  .replayContent2{
+    width: 620px;
+    min-height: 125px;
+    word-wrap: break-word;
+  }
+  .btnWall{
+    flex-direction: row;
+    justify-content: flex-end;
+    display: flex;
+  }
+  .btnArea{
+    margin-left: 2%;
+  }
+  .replyInput{
+    width: 415px;
+  }
+ /* .el-avatar{
     transform: scale(3);
     margin-top: 5%;
     margin-left: 5%;
@@ -285,7 +485,13 @@
   }
   .messageContent{
     width: 500px;
-    height:140px;
+    max-height: 140px;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+    overflow: hidden;
+
     position: absolute;
     right: 16%;
     top:7%
@@ -313,5 +519,5 @@
     position: absolute;
     left: 10%;
     bottom: 3%;
-  }
+  }*/
 </style>
