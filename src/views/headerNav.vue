@@ -26,7 +26,7 @@
        }
       },
       created() {
-        window.addEventListener('scoll',this.handScroll)
+
       },
       mounted() {
         window.addEventListener('scroll', this.scrollToTop)

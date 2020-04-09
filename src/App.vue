@@ -2,11 +2,11 @@
   <keep-alive>
     <div id="app">
       <keep-alive><router-view :key="key" v-if="isRouterAlive"/></keep-alive>
+
       <headerNav v-show="$route.name!=='login'"></headerNav>
     </div>
   </keep-alive>
 </template>
-
 <script>
   import headerNav from "./views/headerNav";
   export default {
@@ -26,9 +26,13 @@
     },
     data(){
       return{
-        isRouterAlive:true
+        isRouterAlive:true,
+        btnFlag:false,
       }
     },
+    mounted() {
+      window.addEventListener('scroll', this.scrollToTop)
+      },
     created() {
       setTimeout(() => {
         window.L2Dwidget.init({
@@ -40,7 +44,7 @@
           model: { jsonPath: 'static/live2dw/live2d-widget-model-haru_1/assets/haru01.model.json' },
           display: { position: 'right', width: 300, height:300 },
           mobile: { show: true },
-          log: false
+          log: false,
         })
       }, 1000)
     },
@@ -55,7 +59,7 @@
         this.$nextTick(function () {
           this.isRouterAlive = true;
         })
-      }
+      },
     }
   }
 </script>
@@ -63,5 +67,13 @@
   *{
     cursor: url(https://cdn.jsdelivr.net/gh/moezx/cdn@3.1.9/img/Sakura/cursor/normal.cur), auto;
   }
+  *::-webkit-scrollbar {
+    width: 6px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: #fe9600;
+    border-radius: 3px;
+  }
+
 </style>
 

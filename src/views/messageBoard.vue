@@ -473,51 +473,5 @@
   .replyInput{
     width: 415px;
   }
- /* .el-avatar{
-    transform: scale(3);
-    margin-top: 5%;
-    margin-left: 5%;
-  }
-  .commitTime{
-   position: absolute;
-    right:2%;
-    top:2%
-  }
-  .messageContent{
-    width: 500px;
-    max-height: 140px;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 5;
-    overflow: hidden;
 
-    position: absolute;
-    right: 16%;
-    top:7%
-  }
-  .delMessage{
-    position: absolute;
-    bottom: 2%;
-    right: 1%;
-    cursor: url(https://cdn.jsdelivr.net/gh/moezx/cdn@3.1.9/img/Sakura/cursor/ayuda.cur), auto;
-  }
-  .answerMessage{
-    position: absolute;
-    bottom: 2%;
-    right: 13%;
-    cursor: url(https://cdn.jsdelivr.net/gh/moezx/cdn@3.1.9/img/Sakura/cursor/ayuda.cur), auto;
-  }
-  .el-collapse{
-    position: absolute;
-    bottom:20%;
-    left: 10%;
-    width:500px
-  }
-  .replyInput{
-    width: 490px;
-    position: absolute;
-    left: 10%;
-    bottom: 3%;
-  }*/
 </style>

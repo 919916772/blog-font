@@ -75,15 +75,7 @@
       window.addEventListener('scoll',this.handScroll)
     },
     methods:{
-      //监听侧拉条
-      handScroll(){
-        let scrollTop=window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop;
-        if(scrollTop>'200'){
-          this.showNavMenu = true;
-        }else{
-          this.showNavMenu = false;
-        }
-      },
+
       //创建画布
 
     }

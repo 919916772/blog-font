@@ -438,9 +438,11 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 9;
     overflow: hidden;
+    min-height:188px;
   }
   .articleContent2{
     width: 640px;
+    min-height: 188px;
     word-wrap: break-word
   }
   .articleBtnS{
