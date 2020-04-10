@@ -20,7 +20,6 @@
       </div>
     </div>
   </div>
-
 </template>
 
 <script>
@@ -87,7 +86,7 @@
     display: flex;
     flex-direction: column;
     width: 100vw;
-    height: auto;
+    height: 100vh;
     cursor: url(https://cdn.jsdelivr.net/gh/moezx/cdn@3.1.9/img/Sakura/cursor/normal.cur), auto;
     background-position: center;
     overflow:hidden;

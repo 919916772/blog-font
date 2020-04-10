@@ -2,7 +2,6 @@
   <keep-alive>
     <div id="app">
       <keep-alive><router-view :key="key" v-if="isRouterAlive"/></keep-alive>
-
       <headerNav v-show="$route.name!=='login'"></headerNav>
     </div>
   </keep-alive>
@@ -31,7 +30,6 @@
       }
     },
     mounted() {
-      window.addEventListener('scroll', this.scrollToTop)
       },
     created() {
       setTimeout(() => {
@@ -74,6 +72,5 @@
     background-color: #fe9600;
     border-radius: 3px;
   }
-
 </style>
 

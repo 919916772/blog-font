@@ -99,7 +99,6 @@
   .homeHeaderNav:hover{
     opacity: 1;
     transition-duration: 2s;
-
   }
   .homeHeaderNav-left{
     color: #464646;
